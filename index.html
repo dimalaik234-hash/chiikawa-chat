@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chiikawa Messenger 🐹</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: linear-gradient(135deg, #fff5f9 0%, #f0f4ff 50%, #fff9f0 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .app {
+            width: 100%;
+            max-width: 500px;
+            height: 100vh;
+            max-height: 900px;
+            background: #fffbf5;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        @media (min-width: 501px) {
+            .app { border-radius: 30px; height: 90vh; }
+        }
+
+        /* ===== ЭКРАНЫ ===== */
+        .screen { display: none; flex-direction: column; height: 100%; }
+        .screen.active { display: flex; }
+
+        /* ===== ЭКРАН ВХОДА ===== */
+        .login-screen {
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            padding: 40px;
+            text-align: center;
+            background: linear-gradient(135deg, #ffe8f0, #ffecd2, #e8f4f8);
+        }
+
+        .login-logo { font-size: 80px; animation: bounce 2s infinite; }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .login-title {
+            font-size: 28px;
+            font-weight: 800;
+            color: #e8829a;
+        }
+
+        .login-subtitle {
+            font-size: 14px;
+            color: #b8948a;
+            max-width: 280px;
+        }
+
+        .login-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 30px;
+            background: white;
+            border: 2px solid #f0ddd0;
+            border-radius: 25px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 16px;
+            font-weight: 700;
+            color: #5a4a42;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+        }
+
+        .login-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-color: #ffb3c6;
+        }
+
+        .login-btn img {
+            width: 22px;
+            height: 22px;
+        }
+
+        /* ===== ЗАГОЛОВОК СПИСКА ЧАТОВ ===== */
+        .chat-list-header {
+            background: linear-gradient(135deg, #ffe8f0, #ffecd2);
+            padding: 15px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 2px dashed #f5d5c8;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .my-avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 3px solid white;
+            box-shadow: 0 3px 10px rgba(255,150,180,0.3);
+            object-fit: cover;
+            background: linear-gradient(135deg, #ffd1dc, #ffb3c6);
+        }
+
+        .app-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #e8829a;
+        }
+
+        .header-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            width: 40px;
+            height: 40px;
+            background: rgba(255,255,255,0.6);
+            border: 2px solid #f5d5c8;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+
+        .icon-btn:hover { transform: scale(1.1); }
+
+        /* ===== СПИСОК ЧАТОВ ===== */
+        .chats-container {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .chat-item {
+            display: flex;
+            align-items: center;
+            padding: 14px 20px;
+            gap: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-bottom: 1px solid #f8efe8;
+        }
+
+        .chat-item:hover { background: #fff0e8; }
+
+        .chat-avatar-wrapper { position: relative; flex-shrink: 0; }
+
+        .chat-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid white;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.06);
+            background: linear-gradient(135deg, #ffd1dc, #ffb3c6);
+        }
+
+        .chat-info { flex: 1; min-width: 0; }
+
+        .chat-name {
+            font-size: 15px;
+            font-weight: 700;
+            color: #5a4a42;
+        }
+
+        .chat-last-msg {
+            font-size: 13px;
+            color: #a89488;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chat-time {
+            font-size: 11px;
+            color: #c4a898;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            color: #c4a898;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .empty-state span:first-child { font-size: 60px; }
+
+        /* ===== МОДАЛЬНОЕ ОКНО НОВОГО ЧАТА ===== */
+        .modal-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.3);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            padding: 30px;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: #fffbf5;
+            border-radius: 25px;
+            padding: 25px;
+            width: 100%;
+            max-width: 350px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: #e8829a;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .modal input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #f0ddd0;
+            border-radius: 15px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 14px;
+            outline: none;
+            margin-bottom: 12px;
+            background: #fff8f2;
+            color: #5a4a42;
+        }
+
+        .modal input:focus { border-color: #ffb3c6; }
+
+        .modal-btns {
+            display: flex;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 10px;
+            border: none;
+            border-radius: 15px;
+            font-family: 'Nunito', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .modal-btn:hover { transform: translateY(-1px); }
+
+        .modal-btn.primary {
+            background: linear-gradient(135deg, #ffb3c6, #ff9ab3);
+            color: white;
+        }
+
+        .modal-btn.secondary {
+            background: #f0e6da;
+            color: #8a7a6a;
+        }
+
+        /* ===== ЭКРАН ЧАТА ===== */
+        .chat-header {
+            background: linear-gradient(135deg, #d1ecf1, #c8e6f0);
+            padding: 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border-bottom: 2px dashed #a8d4de;
+        }
+
+        .back-btn {
+            width: 38px;
+            height: 38px;
+            background: rgba(255,255,255,0.6);
+            border: none;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .chat-header-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid white;
+            background: linear-gradient(135deg, #d1ecf1, #a8dadc);
+        }
+
+        .chat-header-name {
+            font-size: 16px;
+            font-weight: 700;
+            color: #4a7a8a;
+            flex: 1;
+        }
+
+        /* ===== СООБЩЕНИЯ ===== */
+        .messages-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background:
+                url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='30' y='35' text-anchor='middle' font-size='14' opacity='0.05'%3E⭐%3C/text%3E%3C/svg%3E"),
+                linear-gradient(135deg, #fffbf5, #fff5f0);
+        }
+
+        .message {
+            display: flex;
+            flex-direction: column;
+            max-width: 78%;
+        }
+
+        .message.incoming { align-self: flex-start; }
+        .message.outgoing { align-self: flex-end; }
+
+        .msg-sender {
+            font-size: 11px;
+            font-weight: 700;
+            color: #e8829a;
+            margin-bottom: 2px;
+            margin-left: 12px;
+        }
+
+        .msg-bubble {
+            padding: 10px 15px;
+            border-radius: 18px;
+            font-size: 14px;
+            line-height: 1.45;
+            word-wrap: break-word;
+        }
+
+        .incoming .msg-bubble {
+            background: white;
+            color: #5a4a42;
+            border-bottom-left-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #f0e6da;
+        }
+
+        .outgoing .msg-bubble {
+            background: linear-gradient(135deg, #bde0fe, #a2d2ff);
+            color: #3a6a8a;
+            border-bottom-right-radius: 6px;
+            box-shadow: 0 2px 8px rgba(150,200,255,0.3);
+        }
+
+        .msg-time-small {
+            font-size: 10px;
+            color: #c4a898;
+            margin-top: 3px;
+        }
+
+        .outgoing .msg-time-small { text-align: right; margin-right: 5px; }
+        .incoming .msg-time-small { margin-left: 5px; }
+
+        /* ===== ПОЛЕ ВВОДА ===== */
+        .input-area {
+            padding: 10px 15px 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(0deg, #f5f0ea, #fffbf5);
+            border-top: 2px dashed #f0e0d0;
+        }
+
+        .msg-input {
+            flex: 1;
+            padding: 10px 15px;
+            border: 2px solid #f0ddd0;
+            border-radius: 20px;
+            background: white;
+            font-family: 'Nunito', sans-serif;
+            font-size: 14px;
+            color: #5a4a42;
+            outline: none;
+            resize: none;
+            max-height: 100px;
+        }
+
+        .msg-input:focus { border-color: #a8d4de; }
+
+        .send-btn {
+            width: 42px;
+            height: 42px;
+            background: linear-gradient(135deg, #bde0fe, #a2d2ff);
+            border: none;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(150,200,255,0.4);
+            transition: transform 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover { transform: scale(1.15) rotate(-10deg); }
+
+        /* ===== НИЖНЯЯ НАВИГАЦИЯ ===== */
+        .bottom-nav {
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 0 18px;
+            background: linear-gradient(0deg, #fff5f0, #fffbf5);
+            border-top: 2px dashed #f5e0d0;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .nav-item:hover { transform: translateY(-2px); }
+        .nav-icon { font-size: 20px; }
+        .nav-label { font-size: 10px; font-weight: 700; color: #c4a898; }
+        .nav-item.active .nav-label { color: #e8829a; }
+
+        /* ===== СКРОЛЛБАР ===== */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #f0d8c8; border-radius: 10px; }
+
+        /* ===== ЮЗЕР ИНФО (настройки) ===== */
+        .user-info-bar {
+            padding: 8px 20px;
+            background: #fff8f2;
+            font-size: 12px;
+            color: #b8a090;
+            text-align: center;
+            border-bottom: 1px solid #f0e6da;
+        }
+
+        .user-info-bar strong { color: #e8829a; }
+
+        .logout-link {
+            color: #e8829a;
+            cursor: pointer;
+            text-decoration: underline;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="app" id="app">
+
+    <!-- ===== ЭКРАН ВХОДА ===== -->
+    <div class="screen active" id="loginScreen">
+        <div class="login-screen">
+            <div class="login-logo">🐹</div>
+            <div class="login-title">Chiikawa Chat</div>
+            <div class="login-subtitle">Мессенджер с душой ✨<br>Войди через Google и начни общаться!</div>
+            <button class="login-btn" onclick="signIn()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="">
+                Войти через Google
+            </button>
+        </div>
+    </div>
+
+    <!-- ===== ЭКРАН СПИСОК ЧАТОВ ===== -->
+    <div class="screen" id="chatListScreen">
+        <div class="chat-list-header">
+            <div class="header-left">
+                <img class="my-avatar" id="myAvatar" src="" alt="">
+                <div class="app-title">Chiikawa Chat 🐹</div>
+            </div>
+            <div class="header-btns">
+                <button class="icon-btn" onclick="showNewChatModal()">✏️</button>
+            </div>
+        </div>
+
+        <div class="user-info-bar" id="userInfoBar">
+            Вы: <strong id="myNameDisplay"></strong>
+            <span class="logout-link" onclick="signOutUser()">Выйти</span>
+        </div>
+
+        <div class="chats-container" id="chatsList"></div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active">
+                <span class="nav-icon">💬</span>
+                <span class="nav-label">Чаты</span>
+            </div>
+            <div class="nav-item" onclick="showMyId()">
+                <span class="nav-icon">🆔</span>
+                <span class="nav-label">Мой ID</span>
+            </div>
+            <div class="nav-item" onclick="signOutUser()">
+                <span class="nav-icon">🚪</span>
+                <span class="nav-label">Выйти</span>
+            </div>
+        </div>
+
+        <!-- Модальное окно нового чата -->
+        <div class="modal-overlay" id="newChatModal">
+            <div class="modal">
+                <div class="modal-title">✨ Новый чат ✨</div>
+                <input type="text" id="friendEmailInput" placeholder="Email друга (Google аккаунт)">
+                <div class="modal-btns">
+                    <button class="modal-btn secondary" onclick="hideNewChatModal()">Отмена</button>
+                    <button class="modal-btn primary" onclick="startNewChat()">Начать 💬</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== ЭКРАН ЧАТА ===== -->
+    <div class="screen" id="chatScreen">
+        <div class="chat-header">
+            <button class="back-btn" onclick="goBack()">←</button>
+            <img class="chat-header-avatar" id="chatAvatar" src="" alt="">
+            <div class="chat-header-name" id="chatName">Чат</div>
+        </div>
+
+        <div class="messages-area" id="messagesArea"></div>
+
+        <div class="input-area">
+            <input type="text" class="msg-input" id="msgInput"
+                   placeholder="Напиши сообщение..."
+                   onkeydown="if(event.key==='Enter')sendMessage()">
+            <button class="send-btn" onclick="sendMessage()">⭐</button>
+        </div>
+    </div>
+
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<script>
+// ============================================
+// ⬇️⬇️⬇️ ВСТАВЬ СЮДА СВОИ ДАННЫЕ ИЗ FIREBASE ⬇️⬇️⬇️
+// ============================================
+const firebaseConfig = {
+    apiKey: "AIzaSyAw3WyI4jXsIjS2C7304Ysq6pLGpQTZEq0",
+    authDomain: "chiikawa-chat.firebaseapp.com",
+    projectId: "chiikawa-chat",
+    storageBucket: "chiikawa-chat.firebasestorage.app",
+    messagingSenderId: "295197812649",
+    appId: "1:295197812649:web:501053ae7bd68e6a95c6b8"
+};
+// ============================================
+
+firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+const provider = new firebase.auth.GoogleAuthProvider();
+
+let currentUser = null;
+let currentChatId = null;
+let unsubMessages = null;
+let unsubChats = null;
+
+// ===== НАВИГАЦИЯ =====
+function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+}
+
+// ===== АВТОРИЗАЦИЯ =====
+function signIn() {
+    auth.signInWithPopup(provider).catch(err => alert('Ошибка входа: ' + err.message));
+}
+
+function signOutUser() {
+    if (unsubChats) unsubChats();
+    if (unsubMessages) unsubMessages();
+    auth.signOut();
+}
+
+auth.onAuthStateChanged(user => {
+    if (user) {
+        currentUser = user;
+        // Сохраняем профиль в Firestore
+        db.collection('users').doc(user.uid).set({
+            uid: user.uid,
+            email: user.email,
+            name: user.displayName,
+            photo: user.photoURL
+        }, { merge: true });
+
+        document.getElementById('myAvatar').src = user.photoURL || '';
+        document.getElementById('myNameDisplay').textContent = user.displayName || user.email;
+        showScreen('chatListScreen');
+        loadChats();
+    } else {
+        currentUser = null;
+        showScreen('loginScreen');
+    }
+});
+
+// ===== ПОКАЗАТЬ МОЙ ID =====
+function showMyId() {
+    if (currentUser) {
+        prompt('Твой email (дай другу для добавления):', currentUser.email);
+    }
+}
+
+// ===== МОДАЛЬНОЕ ОКНО =====
+function showNewChatModal() {
+    document.getElementById('newChatModal').classList.add('active');
+    document.getElementById('friendEmailInput').value = '';
+    document.getElementById('friendEmailInput').focus();
+}
+
+function hideNewChatModal() {
+    document.getElementById('newChatModal').classList.remove('active');
+}
+
+// ===== СОЗДАТЬ НОВЫЙ ЧАТ =====
+async function startNewChat() {
+    const email = document.getElementById('friendEmailInput').value.trim().toLowerCase();
+    if (!email) return alert('Введи email друга!');
+    if (email === currentUser.email.toLowerCase()) return alert('Нельзя написать самому себе 😅');
+
+    // Найти пользователя по email
+    const snapshot = await db.collection('users').where('email', '==', email).get();
+    if (snapshot.empty) {
+        return alert('Пользователь не найден 😢\nОн должен сначала войти в Chiikawa Chat!');
+    }
+
+    const friend = snapshot.docs[0].data();
+    const chatId = [currentUser.uid, friend.uid].sort().join('_');
+
+    // Создать чат (если не существует)
+    await db.collection('chats').doc(chatId).set({
+        users: [currentUser.uid, friend.uid],
+        userEmails: [currentUser.email, friend.email],
+        userNames: {
+            [currentUser.uid]: currentUser.displayName || currentUser.email,
+            [friend.uid]: friend.name || friend.email
+        },
+        userPhotos: {
+            [currentUser.uid]: currentUser.photoURL || '',
+            [friend.uid]: friend.photo || ''
+        },
+        lastMessage: 'Чат создан ✨',
+        lastTime: firebase.firestore.FieldValue.serverTimestamp(),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    hideNewChatModal();
+    openChat(chatId, friend.name || friend.email, friend.photo || '');
+}
+
+// ===== ЗАГРУЗИТЬ СПИСОК ЧАТОВ =====
+function loadChats() {
+    if (unsubChats) unsubChats();
+
+    const container = document.getElementById('chatsList');
+
+    unsubChats = db.collection('chats')
+        .where('users', 'array-contains', currentUser.uid)
+        .orderBy('lastTime', 'desc')
+        .onSnapshot(snapshot => {
+            container.innerHTML = '';
+
+            if (snapshot.empty) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <span>🐹</span>
+                        <div>Пока нет чатов...</div>
+                        <div style="font-size:13px">Нажми ✏️ чтобы начать!</div>
+                    </div>`;
+                return;
+            }
+
+            snapshot.docs.forEach(doc => {
+                const data = doc.data();
+                const friendUid = data.users.find(u => u !== currentUser.uid);
+                const friendName = data.userNames?.[friendUid] || 'Друг';
+                const friendPhoto = data.userPhotos?.[friendUid] || '';
+                const lastMsg = data.lastMessage || '';
+                const time = data.lastTime?.toDate();
+                const timeStr = time ? formatTime(time) : '';
+
+                const item = document.createElement('div');
+                item.className = 'chat-item';
+                item.onclick = () => openChat(doc.id, friendName, friendPhoto);
+                item.innerHTML = `
+                    <div class="chat-avatar-wrapper">
+                        <img class="chat-avatar" src="${friendPhoto}" alt="🐹"
+                             onerror="this.style.display='none'">
+                    </div>
+                    <div class="chat-info">
+                        <div class="chat-name">${escapeHtml(friendName)}</div>
+                        <div class="chat-last-msg">${escapeHtml(lastMsg)}</div>
+                    </div>
+                    <span class="chat-time">${timeStr}</span>`;
+                container.appendChild(item);
+            });
+        });
+}
+
+// ===== ОТКРЫТЬ ЧАТ =====
+function openChat(chatId, name, photo) {
+    currentChatId = chatId;
+    document.getElementById('chatName').textContent = name;
+    document.getElementById('chatAvatar').src = photo || '';
+    showScreen('chatScreen');
+    loadMessages(chatId);
+    document.getElementById('msgInput').focus();
+}
+
+// ===== ЗАГРУЗИТЬ СООБЩЕНИЯ =====
+function loadMessages(chatId) {
+    if (unsubMessages) unsubMessages();
+
+    const area = document.getElementById('messagesArea');
+
+    unsubMessages = db.collection('chats').doc(chatId)
+        .collection('messages')
+        .orderBy('time', 'asc')
+        .onSnapshot(snapshot => {
+            area.innerHTML = '';
+
+            snapshot.docs.forEach(doc => {
+                const msg = doc.data();
+                const isMe = msg.uid === currentUser.uid;
+                const time = msg.time?.toDate();
+                const timeStr = time ? formatTime(time) : '';
+
+                const div = document.createElement('div');
+                div.className = `message ${isMe ? 'outgoing' : 'incoming'}`;
+                div.innerHTML = `
+                    ${!isMe ? `<div class="msg-sender">${escapeHtml(msg.name || '')}</div>` : ''}
+                    <div class="msg-bubble">${escapeHtml(msg.text)}</div>
+                    <div class="msg-time-small">${isMe ? '🐾 ' : ''}${timeStr}</div>`;
+                area.appendChild(div);
+            });
+
+            area.scrollTop = area.scrollHeight;
+        });
+}
+
+// ===== ОТПРАВИТЬ СООБЩЕНИЕ =====
+async function sendMessage() {
+    const input = document.getElementById('msgInput');
+    const text = input.value.trim();
+    if (!text || !currentChatId) return;
+
+    input.value = '';
+
+    const msgData = {
+        text: text,
+        uid: currentUser.uid,
+        name: currentUser.displayName || currentUser.email,
+        time: firebase.firestore.FieldValue.serverTimestamp()
+    };
+
+    // Добавить сообщение
+    await db.collection('chats').doc(currentChatId)
+        .collection('messages').add(msgData);
+
+    // Обновить последнее сообщение в чате
+    await db.collection('chats').doc(currentChatId).update({
+        lastMessage: text,
+        lastTime: firebase.firestore.FieldValue.serverTimestamp()
+    });
+}
+
+// ===== НАЗАД =====
+function goBack() {
+    if (unsubMessages) unsubMessages();
+    currentChatId = null;
+    showScreen('chatListScreen');
+}
+
+// ===== УТИЛИТЫ =====
+function formatTime(date) {
+    const now = new Date();
+    const diff = now - date;
+    const mins = Math.floor(diff / 60000);
+
+    if (mins < 1) return 'сейчас';
+    if (mins < 60) return `${mins} мин`;
+
+    const isToday = date.toDateString() === now.toDateString();
+    const timeStr = date.toLocaleTimeString('ru', { hour: '2-digit', minute: '2-digit' });
+
+    if (isToday) return timeStr;
+
+    const yesterday = new Date(now);
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (date.toDateString() === yesterday.toDateString()) return `вчера ${timeStr}`;
+
+    return date.toLocaleDateString('ru', { day: 'numeric', month: 'short' }) + ' ' + timeStr;
+}
+
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+}
+</script>
+
+</body>
+</html>
